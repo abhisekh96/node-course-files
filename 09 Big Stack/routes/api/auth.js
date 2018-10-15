@@ -40,4 +40,26 @@ router.post("/register", (req, res) => {
     .catch(err => console.log(err));
 });
 
+router.post("/login", (req, res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  Person.findOne({ email })
+    .then(person => {
+      if (!person) {
+        res.status(404).json({ emailerror: "User not found with this email." });
+      }
+      bcrypt.compare(password, person.password)
+        .then(isCorrect => {
+          if (isCorrect) {
+            res.json({ success: "User is able to login successfully." });
+          } else {
+            res.status(400).json({ passworderror: "Password is incorrect." });
+          }
+        })
+        .catch(err => console.log(err));
+    })
+    .catch(err => console.log(err));
+})
+
 module.exports = router;
