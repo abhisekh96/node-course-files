@@ -44,7 +44,7 @@ router.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-  Person.findOne({ email })
+  person.findOne({ email })
     .then(person => {
       if (!person) {
         res.status(404).json({ emailerror: "User not found with this email." });
@@ -52,7 +52,27 @@ router.post("/login", (req, res) => {
       bcrypt.compare(password, person.password)
         .then(isCorrect => {
           if (isCorrect) {
-            res.json({ success: "User is able to login successfully." });
+            // res.json({ success: "User is able to login successfully." });
+            const payload = {
+              id: person.id,
+              name: person.name,
+              email: person.email
+            }
+            jsonwt.sign(
+              payload,
+              key.secret,
+              { expiresIn: 3600 },
+              (err, token) => {
+                if (err) {
+                  throw err;
+                } else {
+                  res.json({
+                    success: true,
+                    token: "bearer " + token
+                  });
+                }
+              }
+            );
           } else {
             res.status(400).json({ passworderror: "Password is incorrect." });
           }
@@ -60,6 +80,16 @@ router.post("/login", (req, res) => {
         .catch(err => console.log(err));
     })
     .catch(err => console.log(err));
-})
+});
+
+router.get("/profile", passport.authenticate("jwt", { session: false }),
+  (req, res) => {
+    res.json({
+      id: req.user.id,
+      name: req.user.name,
+      email: req.user.email,
+      profilepic: req.user.profilepic
+    })
+  });
 
 module.exports = router;

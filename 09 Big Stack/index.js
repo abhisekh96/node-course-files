@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const bodyparser = require('body-parser');
-
+const passport = require('passport');
 
 const auth = require('./routes/api/auth');
 const questions = require('./routes/api/questions');
@@ -22,6 +22,13 @@ mongoose
   .catch(err => { console.log(err) });
 
 const port = process.env.PORT || 3000;
+
+// Passport middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// Config for JWT Strategy
+require('./strategies/jsonwtStrategy')(passport);
 
 // Testing Routes
 app.get("/", (req, res) => {
